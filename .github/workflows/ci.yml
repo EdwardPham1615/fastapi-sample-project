@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only: nothing here publishes, and a workflow that can write to the repo is
+# one an injected dependency can write with.
+permissions:
+  contents: read
+
+# A new push makes the in-flight run for the same ref obsolete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # No python-version input: uv reads .python-version (3.14) and installs it.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      # --locked: a pyproject.toml change without `uv lock` fails here instead of
+      # being silently re-resolved on the runner.
+      - name: Sync
+        run: uv sync --locked --extra dev
+
+      # The same target developers run locally: ruff, format check, mypy --strict,
+      # unit tests with coverage. The integration suite skips itself without
+      # POSTGRES_TEST_DSN.
+      - name: make check
+        run: make check
