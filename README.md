@@ -1,5 +1,7 @@
 # user-profile-service
 
+[![CI](https://github.com/EdwardPham1615/fastapi-sample-project/actions/workflows/ci.yml/badge.svg)](https://github.com/EdwardPham1615/fastapi-sample-project/actions/workflows/ci.yml)
+
 Reference FastAPI service built on [py-common](https://github.com/EdwardPham1615/py-common)
 `v0.3.0`, and its first consumer. One sample module, **user-profile**, for a mobile app:
 users are created in Keycloak and synced into a local `users` table; this service owns
