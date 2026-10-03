@@ -1,0 +1,52 @@
+[
+  {
+    "id": "5f0c7a4e-1b2d-4c3e-9f10-000000000001",
+    "username": "an.nguyen",
+    "email": "an.nguyen@example.com",
+    "firstName": "An",
+    "lastName": "Nguyen",
+    "enabled": true,
+    "createdTimestamp": 1757030400000,
+    "emailVerified": true
+  },
+  {
+    "id": "5f0c7a4e-1b2d-4c3e-9f10-000000000002",
+    "username": "binh.tran",
+    "email": "binh.tran@example.com",
+    "firstName": "Binh",
+    "lastName": "Tran",
+    "enabled": true,
+    "createdTimestamp": 1757116800000,
+    "emailVerified": true
+  },
+  {
+    "id": "5f0c7a4e-1b2d-4c3e-9f10-000000000003",
+    "username": "chi.le",
+    "email": "chi.le@example.com",
+    "firstName": "Chi",
+    "lastName": "Le",
+    "enabled": true,
+    "createdTimestamp": 1757203200000,
+    "emailVerified": false
+  },
+  {
+    "id": "5f0c7a4e-1b2d-4c3e-9f10-000000000004",
+    "username": "dung.pham",
+    "email": "dung.pham@example.com",
+    "firstName": "Dung",
+    "lastName": "Pham",
+    "enabled": false,
+    "createdTimestamp": 1757289600000,
+    "emailVerified": true
+  },
+  {
+    "id": "5f0c7a4e-1b2d-4c3e-9f10-000000000005",
+    "username": "em.hoang",
+    "email": null,
+    "firstName": "Em",
+    "lastName": "Hoang",
+    "enabled": true,
+    "createdTimestamp": 1757376000000,
+    "emailVerified": false
+  }
+]

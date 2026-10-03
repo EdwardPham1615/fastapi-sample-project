@@ -1,0 +1,39 @@
+# Local backing services. Not for production.
+#
+#   make infra-up     start, wait until healthy
+#   make infra-down   stop and DELETE the data
+#
+# Two databases: `user_profile` for running the app, `user_profile_test` for the
+# integration suite, which drops and recreates its tables.
+
+name: user-profile-service
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: user_profile
+      POSTGRES_PASSWORD: user_profile
+      POSTGRES_DB: user_profile
+      # The official image trusts loopback connections by default, so a password
+      # bug would pass locally and fail everywhere else. Make it check.
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    # 5433 on the host: py-common's own `make infra-up` already takes 5432.
+    ports: ["5433:5432"]
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_profile -d user_profile"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    profiles: ["redis"]  # only started with --profile redis; REDIS_ENABLED is off by default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10

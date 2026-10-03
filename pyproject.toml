@@ -1,0 +1,116 @@
+[project]
+name = "user-profile-service"
+version = "0.1.0"
+description = "Reference FastAPI service built on py-common: the user-profile module"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.14"
+dependencies = [
+    # Only the extras this service uses. py-common 0.2.1 fixed extras that dragged
+    # each other in, so installing [all] would only pay for code that never runs.
+    # No sqlalchemy pin of our own: since 0.3.0 py-common declares the `<2.1` ceiling
+    # that opentelemetry-instrumentation-sqlalchemy needs.
+    "py-common[http,persistence,migrations,runtime,security,telemetry,cache,grpc] @ git+https://github.com/EdwardPham1615/py-common.git@v0.3.0",
+    "pydantic[email]>=2.13.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.16.6",
+    "mypy>=2.3.1",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.0.0",
+    "aiosqlite>=0.21.0",
+    "httpx>=0.28.0",
+    # Starlette's TestClient prefers httpx2 and warns without it (py-common does the same).
+    "httpx2>=2.12.0",
+    "grpcio-tools>=1.83.1",
+    "pre-commit>=4.6.2",
+]
+
+# Uncomment to develop against a local checkout of py-common. The key is the
+# DISTRIBUTION name (py-common), not the import name (py_common).
+# [tool.uv.sources]
+# py-common = { path = "../py-common", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Required: the top-level packages do not match the project name, so without this
+# hatchling looks for src/user_profile_service/ and `uv sync` fails on first run.
+# List only directories that contain .py files. git does not track empty
+# directories, so an empty `constants/` or `utils/` would vanish from a fresh clone
+# and break the build. Add them when their first file lands.
+[tool.hatch.build.targets.wheel]
+packages = ["src", "integrations"]
+
+# The git+https dependency above is a direct reference.
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+src = ["."]
+extend-exclude = ["src/users/grpc/*_pb2*.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "UP", "B", "SIM", "I", "C4", "PERF", "RUF", "ASYNC", "S", "PTH"]
+ignore = ["S101", "S104"]
+
+[tool.ruff.lint.isort]
+# A local alembic/ directory would otherwise make `alembic` look first-party.
+known-third-party = ["alembic"]
+known-first-party = ["src", "integrations", "scripts", "tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
+# FastAPI's Depends(...) in argument defaults is the framework's own idiom.
+"src/**" = ["B008"]
+"scripts/**" = ["T201"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+mypy_path = ["."]
+packages = ["src", "integrations"]
+# Generated gRPC stubs are not type-checkable.
+exclude = ["src/users/grpc/.*_pb2.*\\.py$"]
+
+[[tool.mypy.overrides]]
+module = ["grpc.*", "ecs_logging.*", "src.users.grpc.user_pb2", "src.users.grpc.user_pb2_grpc"]
+ignore_missing_imports = true
+ignore_errors = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--import-mode=importlib -q"
+filterwarnings = ["ignore::DeprecationWarning"]
+markers = [
+    "integration: needs a real Postgres (set POSTGRES_TEST_DSN); skipped otherwise",
+]
+
+[tool.coverage.run]
+source = ["src", "integrations"]
+branch = true
+omit = ["src/users/grpc/*_pb2*.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 80
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
