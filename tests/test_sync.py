@@ -14,9 +14,11 @@ from tests.fakes import InMemoryUserRepository
 
 CLOCK = FixedClock(datetime(2026, 9, 25, 12, 0, tzinfo=UTC))
 USERS = [
-    KeycloakUserDTO(id="kc-1", username="an", email="an@example.com", firstName="An", enabled=True),
     KeycloakUserDTO(
-        id="kc-2", username="binh", email="binh@example.com", firstName="Binh", enabled=False
+        id="kc-1", username="an", email="an@example.com", first_name="An", enabled=True
+    ),
+    KeycloakUserDTO(
+        id="kc-2", username="binh", email="binh@example.com", first_name="Binh", enabled=False
     ),
 ]
 

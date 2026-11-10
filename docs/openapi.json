@@ -1216,8 +1216,7 @@
           "email": {
             "anyOf": [
               {
-                "type": "string",
-                "format": "email"
+                "type": "string"
               },
               {
                 "type": "null"
