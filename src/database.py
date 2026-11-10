@@ -25,4 +25,7 @@ async def get_uow(request: Request) -> AsyncIterator[SqlAlchemyUnitOfWork]:
         yield uow
 
 
-UowDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow)]
+# scope="function": commit before the response is sent. The default exits a yield
+# dependency after the response, so the client got 201 before the commit and a failed
+# commit was reported as success (measured on FastAPI 0.141.1 with a real server).
+UowDep = Annotated[SqlAlchemyUnitOfWork, Depends(get_uow, scope="function")]
