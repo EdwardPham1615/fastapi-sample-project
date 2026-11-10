@@ -1,4 +1,4 @@
-# Local backing services (Postgres, Jaeger; Redis on demand). Not for production.
+# Local backing services (Postgres, Redis, Jaeger). Not for production.
 #
 #   make infra-up     start, wait until healthy
 #   make infra-down   stop and DELETE the data
@@ -31,8 +31,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports: ["127.0.0.1:6379:6379"]
-    profiles: ["redis"]  # only started with --profile redis; REDIS_ENABLED is off by default
+    # 6381 on the host: py-common's own Redis takes 6379, thousand-lives' 6380.
+    # Always started: the worker (make worker) needs it even while REDIS_ENABLED=false.
+    ports: ["127.0.0.1:6381:6379"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s

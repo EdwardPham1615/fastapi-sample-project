@@ -49,6 +49,11 @@ the `sqlalchemy<2.1` pin, and avoiding the uvicorn CLI for log format.
 
 ## Traps with a test on them
 
+- A Celery signal receiver that raises an `Exception` does not stop the process:
+  `Signal.send` catches it and the worker starts anyway, with nothing in its output.
+  To refuse to start, raise `SystemExit` (`src/worker/app.py`).
+- Worker tasks run again after a crash (late ack): make every task safe to run twice.
+
 - Start the server with `python -m src` (`make run`): it reads `SERVER__*`; the
   bare uvicorn CLI binds 127.0.0.1.
 - Logs are ECS JSON in every environment (`LOG_JSON`, default true). Do not tie the

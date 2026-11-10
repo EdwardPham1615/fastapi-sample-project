@@ -13,6 +13,7 @@ src/                  the service: one package per domain + the composition root
   auth.py             the single Auth instance
   <domain>/           one per domain (users/ today)
   usecases/           orchestration ACROSS domains (empty until needed)
+  worker/             the Celery worker: composition root of its own, like main.py
 integrations/         wrappers around third-party systems (keycloak/ today)
 alembic/              migrations, numbered 000001, 000002, ...
 proto/                gRPC contracts
@@ -176,6 +177,9 @@ still the entry point because it is where `SERVER__*` settings are read.
 | policy stays framework-free | `test_boundaries.py` |
 | domain logic never imports usecases; only routes, deps, servicers and the app roots call them | `test_boundaries.py` |
 | usecases hold logic only: no FastAPI, routers, deps or concrete repositories | `test_boundaries.py` |
+| the API imports `src.worker.app` at most, never the worker's tasks or runtime | `test_boundaries.py` |
+| worker and beat refuse to start on dev secrets outside dev | `test_worker.py` |
+| a prefork worker with spawned children runs a task and its log reaches stdout | `test_worker_spawn.py` |
 | loaders are attached to groups | `test_loaders.py` |
 | no dev secret outside dev; errors never print the value | `test_runtime_settings.py` |
 | migrations: one head, sequential | `test_migrations.py` |
