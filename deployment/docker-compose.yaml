@@ -19,7 +19,8 @@ services:
       # bug would pass locally and fail everywhere else. Make it check.
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     # 5433 on the host: py-common's own `make infra-up` already takes 5432.
-    ports: ["5433:5432"]
+    # Loopback only: these are dev credentials, not for the rest of the network.
+    ports: ["127.0.0.1:5433:5432"]
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
@@ -30,7 +31,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
+    ports: ["127.0.0.1:6379:6379"]
     profiles: ["redis"]  # only started with --profile redis; REDIS_ENABLED is off by default
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]

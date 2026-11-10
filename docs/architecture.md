@@ -82,7 +82,9 @@ production builds it.
   routes return `UserCard`, never `UserPublic`.
 - **Internal is not a weaker user.** Do not mint a user to run a job.
 - **py-common's `internal_router` is fail-open** without `HTTP__INTERNAL_API_KEY`.
-  This service refuses to start outside dev instead (`src/main.py`).
+  This service refuses to start outside dev instead, and also when any secret keeps
+  a dev value from `.env.example` (`check_runtime_settings` in `src/config.py`,
+  `tests/test_runtime_settings.py`).
 - **Internal routes stay in OpenAPI.** Hiding them would hide them from
   `assert_routes_protected` too.
 - **Middleware is app-wide and cannot be scoped to a domain.** Anything that should
@@ -174,6 +176,7 @@ still the entry point because it is where `SERVER__*` settings are read.
 | policy stays framework-free | `test_boundaries.py` |
 | no domain imports usecases | `test_boundaries.py` |
 | loaders are attached to groups | `test_loaders.py` |
+| no dev secret outside dev; errors never print the value | `test_runtime_settings.py` |
 | migrations: one head, sequential | `test_migrations.py` |
 | `docs/openapi.json` matches the code | `test_openapi_snapshot.py` |
 | logs are ECS JSON, logger under `log.logger` | `test_logging.py` |

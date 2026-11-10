@@ -26,6 +26,7 @@ def export_settings() -> Settings:
     - environment=production: no /dev/* routes, exactly what clients will meet.
     - an internal API key, so internal routes carry the X-API-Key scheme (and the
       app's startup guard is satisfied). The value never appears in the spec.
+    - a non-dev Postgres password, for the same guard; nothing here connects to it.
     - app_name pinned explicitly: keyword arguments beat environment variables, so
       an APP_NAME exported in someone's shell cannot change the committed file.
     - _env_file=None: the local .env plays no part.
@@ -35,6 +36,7 @@ def export_settings() -> Settings:
         environment="production",
         app_name="user-profile-service",
         http={"internal_api_key": "export-only"},
+        postgres={"password": "export-only"},
         otel={"enabled": False},
         dev_fake_keycloak=False,
     )

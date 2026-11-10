@@ -30,7 +30,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 from src.api import build_routers
-from src.config import Settings, get_settings
+from src.config import Settings, check_runtime_settings, get_settings
 from src.exceptions import integrity_error_handler
 from src.middleware import apply_middleware
 from src.users.grpc import servicer as users_grpc
@@ -54,15 +54,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
 
-    # py-common's internal_router is fail-open by design: without a key it installs
-    # no guard and relies on network isolation. This service does not rely on that,
-    # so "forgot to configure it" becomes "does not start" instead of "the sync
-    # endpoint is open".
-    if not settings.is_dev and not settings.http.internal_api_key:
-        raise RuntimeError(
-            "HTTP__INTERNAL_API_KEY must be set outside dev: "
-            "internal_router installs no guard without it"
-        )
+    check_runtime_settings(settings)
 
     setup_logging(
         level=settings.log_level,

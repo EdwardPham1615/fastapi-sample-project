@@ -58,3 +58,37 @@ class Settings(BaseAppSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
+
+# Values that mean "dev" for a secret: the "dev-..." ones and the Postgres password of
+# .env.example, and py-common's default Postgres password.
+_DEV_VALUES = frozenset({"user_profile", "postgres"})
+
+
+def check_runtime_settings(settings: Settings) -> None:
+    """Fail at startup rather than run unguarded or on dev values.
+
+    Errors name the variables, never their values."""
+    if settings.is_dev:
+        return
+    # py-common's internal_router is fail-open by design: without a key it installs
+    # no guard and relies on network isolation. This service does not rely on that,
+    # so "forgot to configure it" becomes "does not start" instead of "the sync
+    # endpoint is open".
+    if not settings.http.internal_api_key:
+        raise RuntimeError(
+            "HTTP__INTERNAL_API_KEY must be set outside dev: "
+            "internal_router installs no guard without it"
+        )
+    secrets = {
+        "HTTP__INTERNAL_API_KEY": settings.http.internal_api_key,
+        "POSTGRES__PASSWORD": settings.postgres.password,
+        "KEYCLOAK__CLIENT_SECRET": settings.keycloak.client_secret,
+    }
+    dev = [
+        name
+        for name, value in secrets.items()
+        if value and (value.startswith("dev-") or value in _DEV_VALUES)
+    ]
+    if dev:
+        raise RuntimeError(f"Dev values outside dev: {', '.join(dev)}")
