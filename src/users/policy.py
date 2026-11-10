@@ -45,7 +45,7 @@ def status_from_idp(enabled: bool) -> UserStatus:
 def apply_idp_snapshot(user: User | None, dto: KeycloakUserDTO, *, now: int) -> tuple[User, bool]:
     """Create or refresh a user from the identity provider's view of them.
 
-    The one place Keycloak's vocabulary (``firstName``, ``enabled``) is translated
+    The one place Keycloak's vocabulary (``enabled``, epoch-ms ``created_timestamp``) is translated
     into this service's. Returns the user (the same object when one was given) and
     whether anything changed; a new user always counts as changed.
     """
@@ -56,12 +56,12 @@ def apply_idp_snapshot(user: User | None, dto: KeycloakUserDTO, *, now: int) -> 
     }
 
     if user is None:
-        created_at = dto.createdTimestamp or now
+        created_at = dto.created_timestamp or now
         created = User(
             id=uuid.uuid4(),  # set explicitly: the column default only runs at INSERT
             **idp_values,
-            first_name=dto.firstName,
-            last_name=dto.lastName,
+            first_name=dto.first_name,
+            last_name=dto.last_name,
             gender=int(Gender.UNKNOWN),
             lang=DEFAULT_LANG,
             logged_in_methods=[],

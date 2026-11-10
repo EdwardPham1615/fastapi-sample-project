@@ -1,25 +1,34 @@
-"""Keycloak's shapes, kept as Keycloak writes them.
+"""Keycloak's shapes, in this codebase's snake_case.
 
-``firstName`` looks wrong in a Python file, and that is the point: it marks where
-foreign data stops. Translation into this service's vocabulary happens in exactly
-one function (``src.users.policy.apply_idp_snapshot``), not at every use.
+The alias generator reads Keycloak's camelCase JSON (``firstName``); code and tests
+use the field names. Translation into this service's own vocabulary (``enabled`` →
+``UserStatus``) still happens in exactly one function,
+``src.users.policy.apply_idp_snapshot``.
 """
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 
 
 class KeycloakUserDTO(BaseModel):
     """Subset of Keycloak's ``UserRepresentation`` (Admin REST API)."""
 
-    # Keycloak returns many more fields; accept and ignore them.
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(
+        # Keycloak returns many more fields; accept and ignore them.
+        extra="ignore",
+        # Read Keycloak's camelCase keys; still allow snake_case in code and tests.
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
 
     id: str
     username: str
-    email: EmailStr | None = None
-    firstName: str | None = None
-    lastName: str | None = None
+    # Plain str: Keycloak already validated it, and email-validator refuses special-use
+    # domains such as a dev realm's `.local`.
+    email: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     enabled: bool = True
-    createdTimestamp: int | None = None
+    created_timestamp: int | None = None

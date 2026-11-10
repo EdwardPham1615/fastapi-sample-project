@@ -6,7 +6,7 @@ from typing import Self
 from uuid import UUID
 
 from py_common.utils import SYSTEM_CLOCK
-from pydantic import ConfigDict, EmailStr, Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from src.entity import CustomModel
 from src.models import epoch_ms
@@ -28,7 +28,9 @@ class UserPublic(CustomModel):
     first_name: str | None
     last_name: str | None
     middle_name: str | None
-    email: EmailStr | None
+    # Plain str, like KeycloakUserDTO.email: what the identity provider accepted must
+    # serialise back out, or reading that user is a 500 (tests/test_keycloak_dto.py).
+    email: str | None
     phone: str | None
     dial_code: str | None
     gender: Gender
