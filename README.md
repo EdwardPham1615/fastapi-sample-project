@@ -93,6 +93,10 @@ settings.
 http://localhost:16688 and pick `user-profile-service`. Metrics stay off in dev
 (`OTEL__METRICS_ENABLED=false`): Jaeger accepts traces only.
 
+HTTP in and out and every SQL statement are traced automatically. For a step whose
+outcome a trace should show, use `src/tracing.py` (`span`, `annotate`), as
+`UserSyncService.apply` does with its counts. Never an email, phone or search term.
+
 ## Tests
 
 ```bash

@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from py_common.utils import SYSTEM_CLOCK, Clock
 
 from src.models import epoch_ms
+from src.tracing import annotate, span
 from src.users import policy
 from src.users.entity import SyncReport
 
@@ -34,15 +35,18 @@ class UserSyncService:
         """Upsert by ``oidc_provider_id``. Idempotent: a second run changes nothing."""
         report = SyncReport()
         now = epoch_ms(self._clock)
-        for dto in users:
-            existing = await self._repo.get_by_oidc_id(dto.id)
-            user, changed = policy.apply_idp_snapshot(existing, dto, now=now)
-            if existing is None:
-                await self._repo.create(user)
-                report.created += 1
-            elif changed:
-                await self._repo.update(user)
-                report.updated += 1
-            else:
-                report.unchanged += 1
+        with span("users.sync", users=len(users)):
+            for dto in users:
+                existing = await self._repo.get_by_oidc_id(dto.id)
+                user, changed = policy.apply_idp_snapshot(existing, dto, now=now)
+                if existing is None:
+                    await self._repo.create(user)
+                    report.created += 1
+                elif changed:
+                    await self._repo.update(user)
+                    report.updated += 1
+                else:
+                    report.unchanged += 1
+            # Counts only: the report is the outcome a trace of this request lacks.
+            annotate(created=report.created, updated=report.updated, unchanged=report.unchanged)
         return report
