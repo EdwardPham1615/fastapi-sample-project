@@ -43,10 +43,10 @@ proto: ## Regenerate gRPC stubs from proto/
 	sed -i.bak 's/^import user_pb2 as user__pb2$$/from . import user_pb2 as user__pb2/' \
 		src/users/grpc/user_pb2_grpc.py && rm -f src/users/grpc/user_pb2_grpc.py.bak
 
-infra-up: ## Start Postgres (and wait until healthy)
+infra-up: ## Start Postgres and Jaeger (and wait until healthy)
 	$(COMPOSE) up -d --wait
 
-infra-down: ## Stop Postgres and DELETE its data
+infra-down: ## Stop Postgres and Jaeger and DELETE their data
 	$(COMPOSE) down -v
 
 test-integration-local: infra-up ## Integration suite against the real Postgres

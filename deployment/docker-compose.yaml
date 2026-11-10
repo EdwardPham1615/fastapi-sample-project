@@ -1,4 +1,4 @@
-# Local backing services. Not for production.
+# Local backing services (Postgres, Jaeger; Redis on demand). Not for production.
 #
 #   make infra-up     start, wait until healthy
 #   make infra-down   stop and DELETE the data
@@ -38,3 +38,21 @@ services:
       interval: 3s
       timeout: 3s
       retries: 10
+
+  jaeger:
+    # Where the app sends its traces in development; UI at http://localhost:16688.
+    # Kept in memory: a restart empties it. Same pinned image as py-common's tests.
+    # Host ports 4337/16688 so it runs beside py-common's (4317/16686) and
+    # thousand-lives' (4327/16687) Jaegers.
+    image: jaegertracing/all-in-one:1.76.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "127.0.0.1:4337:4317"
+      - "127.0.0.1:16688:16686"
+    healthcheck:
+      # The image has wget but no curl.
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:16686/api/services"]
+      interval: 3s
+      timeout: 3s
+      retries: 15

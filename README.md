@@ -86,6 +86,13 @@ Start the server with `make run` / `python -m src`: it reads host and port from
 `SERVER__*`. The `uvicorn` CLI also logs ECS since py-common 0.3.0, but ignores those
 settings.
 
+## Traces
+
+`make infra-up` also starts Jaeger, and `.env.example` sends traces to it
+(`OTEL__ENABLED=true`, `OTEL__EXPORTER_OTLP_ENDPOINT=http://localhost:4337`). Open
+http://localhost:16688 and pick `user-profile-service`. Metrics stay off in dev
+(`OTEL__METRICS_ENABLED=false`): Jaeger accepts traces only.
+
 ## Tests
 
 ```bash
