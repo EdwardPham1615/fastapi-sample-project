@@ -1,10 +1,14 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.14"
 resolution-markers = [
     "python_full_version >= '3.15'",
     "python_full_version < '3.15'",
 ]
+
+[options]
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P7D"
 
 [[package]]
 name = "aiosqlite"
@@ -1282,8 +1286,8 @@ wheels = [
 
 [[package]]
 name = "py-common"
-version = "0.3.0"
-source = { git = "https://github.com/EdwardPham1615/py-common.git?rev=v0.3.0#052e999c62a4af17963f9cb97d7a49b338a15ee4" }
+version = "0.4.1"
+source = { git = "https://github.com/EdwardPham1615/py-common.git?rev=v0.4.1#d6c880f0a1ba6a8ff7da790d33906ee4974f246b" }
 dependencies = [
     { name = "anyio" },
     { name = "ecs-logging" },
@@ -1731,7 +1735,7 @@ requires-dist = [
     { name = "httpx2", marker = "extra == 'dev'", specifier = ">=2.12.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.3.1" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.6.2" },
-    { name = "py-common", extras = ["http", "persistence", "migrations", "runtime", "security", "telemetry", "cache", "grpc"], git = "https://github.com/EdwardPham1615/py-common.git?rev=v0.3.0" },
+    { name = "py-common", extras = ["http", "persistence", "migrations", "runtime", "security", "telemetry", "cache", "grpc"], git = "https://github.com/EdwardPham1615/py-common.git?rev=v0.4.1" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.13.5" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.0.0" },

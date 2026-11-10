@@ -126,6 +126,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         metrics_enabled=settings.otel.metrics_enabled,
         metrics_export_interval_ms=settings.otel.metrics_export_interval_ms,
         prometheus_metrics=settings.otel.prometheus_enabled,
+        # Extra query-param names to redact from spans; py-common's built-ins always apply.
+        redact_query_params=settings.otel.redact_query_params,
     )
     enable_profiler(app, settings.profiler, environment=settings.environment.value)
 

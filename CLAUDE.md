@@ -5,7 +5,7 @@ Guidance for Claude Code in this repository.
 ## What this is
 
 A reference FastAPI service and the **first consumer** of py-common (`../py-common`,
-pinned to tag `v0.3.0`). It is copied to start new services, so a shortcut here gets
+pinned to tag `v0.4.1`). It is copied to start new services, so a shortcut here gets
 copied too. Rules live in `docs/architecture.md`; read it before adding a domain, a
 router or a migration.
 
@@ -24,10 +24,9 @@ make proto                   # regenerate gRPC stubs
 
 ## Before trusting py-common from memory
 
-The library moves under this repo (v0.1.0 → v0.2.1 → v0.3.0 while it was being
-built). Before relying on a py-common API, read it:
+The library moves under this repo (v0.1.0 → v0.2.1 → v0.3.0 → v0.4.1 so far). Before relying on a py-common API, read it:
 `.venv/lib/python3.14/site-packages/py_common/`, or `../py-common` at the pinned tag,
-and its `CHANGELOG.md` when bumping. Still true at v0.3.0:
+and its `CHANGELOG.md` when bumping. Still true at v0.4.1:
 
 - `Repository` is an ABC, not a Protocol — interfaces here are ABCs.
 - `internal_router` is fail-open without `HTTP__INTERNAL_API_KEY`.
@@ -36,6 +35,13 @@ and its `CHANGELOG.md` when bumping. Still true at v0.3.0:
   `IUserRepository.get_existing`, and must raise the *same* 404.
 - A route using `OptionalClaims` counts as public for `assert_routes_protected`:
   list it in `PUBLIC_PATHS`.
+- `ENVIRONMENT` has no default (since 0.4.0): any `Settings` built without it, or a
+  `.env` that has it, fails. `tests/conftest.py` sets it before importing `src`.
+- `is_dev` compares with `is Environment.DEV`; `settings.model_copy(update=...)` skips
+  validation, so pass `Environment("dev")`, never the string.
+- Anything building non-dev settings (`src/openapi.py:export_settings`) needs non-dev
+  placeholder secrets, or `check_runtime_settings` (and, in production, py-common's own
+  placeholder check) refuses them.
 
 Gaps this repo used to fill itself, now in py-common 0.3.0 — do not re-add them:
 `request.state.user` binding, a token-provider test subclass (pass `transport=`),
