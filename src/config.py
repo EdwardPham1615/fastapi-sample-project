@@ -21,6 +21,7 @@ from py_common.config import (
     OtelSettings,
     ProfilerSettings,
     RedisSettings,
+    WorkerSettings,
 )
 from pydantic import Field
 
@@ -40,6 +41,9 @@ class Settings(BaseAppSettings):
     keycloak: KeycloakSettings = Field(default_factory=KeycloakSettings)
     otel: OtelSettings = Field(default_factory=OtelSettings)
     profiler: ProfilerSettings = Field(default_factory=ProfilerSettings)
+    # The Celery worker's broker, retries, lock TTL (src/worker/). Its Redis client is
+    # `redis` above; the API reads neither unless REDIS_ENABLED.
+    worker: WorkerSettings = Field(default_factory=WorkerSettings)
 
     grpc_enabled: bool = False
     grpc_host: str = "0.0.0.0"

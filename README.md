@@ -97,6 +97,22 @@ HTTP in and out and every SQL statement are traced automatically. For a step who
 outcome a trace should show, use `src/tracing.py` (`span`, `annotate`), as
 `UserSyncService.apply` does with its counts. Never an email, phone or search term.
 
+## Worker
+
+A Celery worker built on py-common's `Worker` (`src/worker/`), with one task:
+`users.sync`, the same sync as `POST /internal/users/sync`, which beat runs every night at
+02:00 UTC. `make infra-up` starts its Redis (`127.0.0.1:6381`); then `make worker` and
+`make beat`. In dev the Keycloak it reads is the fake one inside the API, so `make run`
+must be up too. Send the task by hand with
+`uv run celery -A src.worker.app call users.sync`.
+
+Every task must be safe to run twice: py-common acknowledges late, so a task in a killed
+worker runs again. `users.sync` is an upsert and holds a lock, so a scheduled run and a
+manual one never overlap. Outside dev, worker and beat refuse to start on dev secrets,
+like the API. In production they run from the same image with
+`celery -A src.worker.app --quiet worker` (and `beat`) as the command; `--quiet` drops
+Celery's plain-text banner from the JSON log stream. No compose service for them yet.
+
 ## Tests
 
 ```bash

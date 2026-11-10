@@ -1,4 +1,4 @@
-.PHONY: help install lint format format-check typecheck test test-cov check proto \
+.PHONY: help worker beat install lint format format-check typecheck test test-cov check proto \
 	infra-up infra-down test-integration-local migrate revision seed run token openapi
 
 UV ?= uv
@@ -43,10 +43,10 @@ proto: ## Regenerate gRPC stubs from proto/
 	sed -i.bak 's/^import user_pb2 as user__pb2$$/from . import user_pb2 as user__pb2/' \
 		src/users/grpc/user_pb2_grpc.py && rm -f src/users/grpc/user_pb2_grpc.py.bak
 
-infra-up: ## Start Postgres and Jaeger (and wait until healthy)
+infra-up: ## Start Postgres, Redis and Jaeger (and wait until healthy)
 	$(COMPOSE) up -d --wait
 
-infra-down: ## Stop Postgres and Jaeger and DELETE their data
+infra-down: ## Stop Postgres, Redis and Jaeger and DELETE their data
 	$(COMPOSE) down -v
 
 test-integration-local: infra-up ## Integration suite against the real Postgres
@@ -64,6 +64,13 @@ seed: ## Load scripts/data/keycloak_users.json through UserSyncService
 
 run: ## Run the app with reload (host/port from SERVER__* — see src/__main__.py)
 	$(UV) run python -m src --reload
+
+worker: ## Run the Celery worker (prefork pool; needs make infra-up, and make run for the dev Keycloak)
+	$(UV) run celery -A src.worker.app worker --loglevel INFO
+
+beat: ## Run the Celery beat scheduler (schedule state in .dev/, git-ignored)
+	@mkdir -p .dev
+	$(UV) run celery -A src.worker.app beat --loglevel INFO --schedule .dev/celerybeat-schedule
 
 token: ## Mint a dev user token: make token sub=<oidc_provider_id>
 	@test -n "$(sub)" || { echo 'usage: make token sub=<oidc_provider_id>  (see `make seed`)'; exit 1; }
