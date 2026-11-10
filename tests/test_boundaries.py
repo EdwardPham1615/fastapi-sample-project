@@ -9,7 +9,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
+# The app's roots: main.py builds the app, api.py mounts every router.
+COMPOSITION_FILES = ("api.py", "main.py")
+# A domain's edges: its routes, the dependencies they ask for, and its gRPC servicer.
+# They may call a usecase; the domain's logic (models, policy, repositories, services)
+# may not.
+TRANSPORT_DIRS = ("routers", "grpc")
+TRANSPORT_FILES = ("deps.py",)
 
 
 def _python_files(*parts: str) -> list[Path]:
@@ -50,10 +59,37 @@ def test_policy_does_not_import_frameworks() -> None:
     assert not [i for i in imports if "fastapi" in i or "sqlalchemy" in i], imports
 
 
-def test_no_domain_imports_usecases() -> None:
-    """usecases/ sits above the domains. One-way, so circular imports cannot happen."""
+def _is_edge(path: Path) -> bool:
+    parts = path.relative_to(ROOT / "src").parts
+    return (
+        parts in [(name,) for name in COMPOSITION_FILES]
+        or path.name in TRANSPORT_FILES
+        or any(part in TRANSPORT_DIRS for part in parts)
+    )
+
+
+def test_no_domain_logic_imports_usecases() -> None:
+    """usecases/ sits above the domains' logic. One-way, so circular imports cannot
+    happen; only the edges that call into a domain (routes, deps, servicers, the app
+    roots) may call a usecase."""
     for path in _python_files("src"):
-        if "usecases" in path.parts:
+        if "usecases" in path.parts or _is_edge(path):
             continue
         offending = [i for i in _imports(path) if "usecases" in i]
+        assert not offending, f"{path.relative_to(ROOT)}: {offending}"
+
+
+def test_usecases_are_logic_only() -> None:
+    """usecases hold cross-domain logic only: no routes, FastAPI, deps or concrete
+    repositories — a usecase receives its repositories, it does not build them."""
+    files = sorted((ROOT / "src/usecases").rglob("*.py"))
+    if not files:
+        pytest.skip("src/usecases/ has no code yet")
+    assert not [p for p in files if "routers" in p.parts], "routes do not live in usecases"
+    for path in files:
+        offending = [
+            i
+            for i in _imports(path)
+            if "fastapi" in i or ".routers" in i or ".deps" in i or "sqlalchemy_repository" in i
+        ]
         assert not offending, f"{path.relative_to(ROOT)}: {offending}"

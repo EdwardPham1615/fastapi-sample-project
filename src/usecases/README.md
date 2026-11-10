@@ -18,9 +18,14 @@ here. `usecases/` is for orchestration **across** domains.
 
 ## The one rule
 
-`usecases/` sits **above** the domains: it may import any of them, and **no domain
-may import `usecases`**. One-way, so circular imports cannot happen.
-`tests/test_boundaries.py` enforces it.
+`usecases/` sits **above** the domains' logic: it may import any domain's interfaces,
+and a domain's logic (models, policy, repositories, services) **never imports
+`usecases`**. One-way, so circular imports cannot happen.
+
+What calls a usecase is a domain's edge — its `routers/`, its `deps.py`, its `grpc/`
+servicer — or the app roots (`main.py`, `api.py`). And a usecase is logic only: no
+FastAPI, no routers, no deps, no concrete `SqlAlchemy…Repository`; it receives its
+repositories through their interfaces. `tests/test_boundaries.py` enforces both.
 
 ## Transactions
 

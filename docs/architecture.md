@@ -174,7 +174,8 @@ still the entry point because it is where `SERVER__*` settings are read.
 | integrations do not import the service | `test_boundaries.py` |
 | only composition points import concrete repositories | `test_boundaries.py` |
 | policy stays framework-free | `test_boundaries.py` |
-| no domain imports usecases | `test_boundaries.py` |
+| domain logic never imports usecases; only routes, deps, servicers and the app roots call them | `test_boundaries.py` |
+| usecases hold logic only: no FastAPI, routers, deps or concrete repositories | `test_boundaries.py` |
 | loaders are attached to groups | `test_loaders.py` |
 | no dev secret outside dev; errors never print the value | `test_runtime_settings.py` |
 | migrations: one head, sequential | `test_migrations.py` |
