@@ -60,6 +60,10 @@ dependencies, no `...`, no `RootModel`). Where it disagrees with this repo, this
 - `mypy --strict` (`make check`), not `ty`.
 - anyio / asyncio as already used, not Asyncer — no dependency for it.
 - Handlers here are `async` (the database is async), not `def` by default.
+- A `yield` dependency that **commits** uses `scope="function"` (`src/database.py`,
+  `tests/test_unit_of_work.py`). The skill's `get_db` example keeps the default
+  `"request"` scope, which runs the exit code after the response is sent: fine for a
+  `close()`, wrong for a commit (the client hears 201 before the row exists).
 
 ## Traps with a test on them
 
