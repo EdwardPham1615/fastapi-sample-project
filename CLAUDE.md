@@ -47,6 +47,20 @@ Gaps this repo used to fill itself, now in py-common 0.3.0 — do not re-add the
 `request.state.user` binding, a token-provider test subclass (pass `transport=`),
 the `sqlalchemy<2.1` pin, and avoiding the uvicorn CLI for log format.
 
+## The FastAPI skill, and where this repo overrides it
+
+`.claude/skills/fastapi` links to the skill bundled with the installed FastAPI
+(`.venv/.../fastapi/.agents/skills/fastapi`), so it always matches the locked version;
+it resolves after `make install`. Use it for FastAPI idioms (`Annotated`, router-level
+dependencies, no `...`, no `RootModel`). Where it disagrees with this repo, this repo wins:
+
+- Start with `python -m src` / `make run`, not `fastapi dev` / `fastapi run`; no
+  `[tool.fastapi]` entrypoint. The runner reads `SERVER__*`.
+- SQLAlchemy through py-common's persistence (`Repository`, `UnitOfWork`), not SQLModel.
+- `mypy --strict` (`make check`), not `ty`.
+- anyio / asyncio as already used, not Asyncer — no dependency for it.
+- Handlers here are `async` (the database is async), not `def` by default.
+
 ## Traps with a test on them
 
 - A Celery signal receiver that raises an `Exception` does not stop the process:
